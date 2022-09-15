@@ -31,7 +31,7 @@ type AccountExport struct {
 }
 
 const (
-	COL_NAMES          = "link;user;secret"
+	COL_NAMES          = "url;username;password"
 	FILE_NAME          = "accounts.csv"
 	FILE_NAME_EXPORT   = "tokens.json"
 	FILE_NAME_PROTOCOL = "report.log"
