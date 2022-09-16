@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/connctd/digitalstrom"
+	"github.com/go-logr/logr"
 	"github.com/go-logr/stdr"
 	"github.com/google/uuid"
 )
@@ -38,6 +39,8 @@ const (
 	APP_NAME           = "foresight-connctd"
 )
 
+var logger logr.Logger
+
 func main() {
 	// set the logger - writing everything to log.txt
 	setLogger()
@@ -50,7 +53,6 @@ func main() {
 	client := &http.Client{Transport: tr}
 	dSAccount.Connection.HTTPClient = client
 
-	fmt.Println(os.Args)
 	filename := FILE_NAME
 	if len(os.Args) > 1 {
 		filename = os.Args[1]
@@ -60,9 +62,11 @@ func main() {
 	fmt.Printf("This program will register the CONNCTD connector to all dS-Accounts, given in the file %s.\n", filename)
 	fmt.Println("")
 	fmt.Printf("Reading file %s  ... ", filename)
+	logger.Info(fmt.Sprintf("reading file %s", filename))
 	readFile, err := os.Open(filename)
 
 	if err != nil {
+		logger.Error(err, fmt.Sprintf("file %s", filename))
 		fmt.Println("ERROR")
 		fmt.Println(err)
 		fmt.Println("Either name your csv file accounts.csv and run the program without arguments or name the file by argument when calling the program.")
@@ -76,7 +80,9 @@ func main() {
 
 	fileScanner.Scan()
 	firstLine := fileScanner.Text()
+	logger.Info(fmt.Sprintf("firstline of file '%s' is '%s'", filename, firstLine))
 	if firstLine != COL_NAMES {
+		logger.Error(fmt.Errorf("first line does not match with expected line ('%s'))", COL_NAMES), "program aborted")
 		fmt.Printf("wrong column names, must be %s\n", COL_NAMES)
 		fmt.Println("Program stopped")
 		return
@@ -86,8 +92,10 @@ func main() {
 
 	for fileScanner.Scan() {
 		newLine := fileScanner.Text()
+		logger.Info(fmt.Sprintf("reading next line '%s'", newLine))
 		newAccount, err := getAccountRow(newLine)
 		if err != nil {
+			logger.Error(err, "program aborted")
 			fmt.Printf("error, unable to read line: '%s' (%s)\n", newLine, err)
 			fmt.Println("Program stopped")
 			return
@@ -130,6 +138,7 @@ func main() {
 }
 
 func saveAccountData(accounts []*accountRow, filename string) error {
+	logger.Info(fmt.Sprintf("saving export to file '%s'", filename))
 	export := []AccountExport{}
 
 	for i := range accounts {
@@ -146,10 +155,12 @@ func saveAccountData(accounts []*accountRow, filename string) error {
 	res, err := json.Marshal(export)
 
 	if err != nil {
+		logger.Error(err, "failed to convert array of AccountExport to json")
 		return err
 	}
 
 	if err := os.WriteFile(filename, res, 0666); err != nil {
+		logger.Error(err, "unable to save json %s", res)
 		return err
 	}
 
@@ -159,7 +170,7 @@ func saveAccountData(accounts []*accountRow, filename string) error {
 
 func saveReport(accounts []*accountRow, filename string) error {
 	lines := []string{}
-
+	logger.Info(fmt.Sprintf("Saving report to file '%s'", filename))
 	for i := range accounts {
 		if accounts[i].success {
 			lines = append(lines, fmt.Sprintf("SUCCESS %s ", accounts[i].link))
@@ -169,7 +180,7 @@ func saveReport(accounts []*accountRow, filename string) error {
 	}
 	f, err := os.Create(filename)
 	if err != nil {
-
+		logger.Error(err, "unable to save report %s", lines)
 		return err
 	}
 	// remember to close the file
@@ -178,6 +189,7 @@ func saveReport(accounts []*accountRow, filename string) error {
 	for _, line := range lines {
 		_, err := fmt.Fprintln(f, line)
 		if err != nil {
+			logger.Error(err, "unable to save report %s", lines)
 			return err
 		}
 	}
@@ -187,11 +199,12 @@ func saveReport(accounts []*accountRow, filename string) error {
 
 func registerConnector(dSAccount *digitalstrom.Account, accountRow *accountRow) {
 	fmt.Printf(" registering application '%s' at %s .... ", APP_NAME, accountRow.link)
-
+	logger.Info(fmt.Sprintf(" registering application '%s' at %s .... ", APP_NAME, accountRow.link))
 	dSAccount.SetURL(accountRow.link)
 
 	atoken, err := dSAccount.RegisterApplication(APP_NAME, accountRow.user, accountRow.secret)
 	if err != nil {
+		logger.Error(err, "registration marked as failed for this account")
 		fmt.Println("ERROR")
 		accountRow.err = fmt.Sprintf("%s", err)
 		return
@@ -218,10 +231,14 @@ func getAccountRow(line string) (*accountRow, error) {
 	return &newRow, nil
 }
 func setLogger() {
-	f, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile("debug.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
+	l := stdr.New(log.New(f, "", log.LstdFlags|log.Lshortfile))
 
-	digitalstrom.SetLogger(stdr.New(log.New(f, "", log.LstdFlags|log.Lshortfile)))
+	logger = l.WithName("ds-connector-registration")
+	logger.Info("setting logger at digitalstrom library")
+	digitalstrom.SetLogger(l)
+
 }

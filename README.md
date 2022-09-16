@@ -31,5 +31,5 @@ In order to build the code for other operating systems and archtectures, type th
 
 ## Run
 
-Run the tool. It searches for the prepared file ```accounts.csv``` and registers an application 'foresight-connectd' to all digitalStrom systems listed. When the tool has finished, it generates to files ```report.log``` and ```tokens.json```. The file ```report.log``` gives an overview of the success or fail status for each system as well as the error description when an error occured during the process. The file ```tokens.json``` contains the tokens for each successful registration (failed registration will be ignored in this file).
+Run the tool. It searches for the prepared file ```accounts.csv``` and registers an application 'foresight-connectd' to all digitalStrom systems listed. When the tool has finished, it generates trhee files ```report.log```,```tokens.json``` and ```debug.log```. The file ```report.log``` gives an overview of the success or fail status for each system as well as the error description when an error occured during the process. The file ```tokens.json``` contains the tokens for each successful registration (failed registration will be ignored in this file). the file ```debug.log``` could be ignored, it contains the whole logging for debug purposes. 
 

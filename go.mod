@@ -8,4 +8,4 @@ require (
 	github.com/google/uuid v1.3.0
 )
 
-require github.com/go-logr/logr v0.4.0 // indirect
+require github.com/go-logr/logr v0.4.0
