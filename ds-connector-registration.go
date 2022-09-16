@@ -39,24 +39,33 @@ const (
 )
 
 func main() {
-
+	// set the logger - writing everything to log.txt
 	setLogger()
+	// use the account object of the digitalstrom library, needed to register applications
 	dSAccount := *digitalstrom.NewAccount()
-
+	// fix for TLS issue, bug of digitalStrom
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
 	dSAccount.Connection.HTTPClient = client
+
+	fmt.Println(os.Args)
+	filename := FILE_NAME
+	if len(os.Args) > 1 {
+		filename = os.Args[1]
+	}
+
 	fmt.Println("")
-	fmt.Printf("This program will register the CONNCTD connector to all dS-Accounts, given in the file %s.\n", FILE_NAME)
+	fmt.Printf("This program will register the CONNCTD connector to all dS-Accounts, given in the file %s.\n", filename)
 	fmt.Println("")
-	fmt.Printf("Reading file %s  ... ", FILE_NAME)
-	readFile, err := os.Open(FILE_NAME)
+	fmt.Printf("Reading file %s  ... ", filename)
+	readFile, err := os.Open(filename)
 
 	if err != nil {
 		fmt.Println("ERROR")
 		fmt.Println(err)
+		fmt.Println("Either name your csv file accounts.csv and run the program without arguments or name the file by argument when calling the program.")
 		fmt.Println("Program stopped")
 		return
 	}
