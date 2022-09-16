@@ -36,7 +36,8 @@ const (
 	FILE_NAME          = "accounts.csv"
 	FILE_NAME_EXPORT   = "tokens.json"
 	FILE_NAME_PROTOCOL = "report.log"
-	APP_NAME           = "foresight-connctd"
+	FILE_NAME_LOG      = "debug.log"
+	APP_NAME           = "foresight-connctd" // the name visible for access rights in the dS system
 )
 
 var logger logr.Logger
@@ -52,7 +53,7 @@ func main() {
 	}
 	client := &http.Client{Transport: tr}
 	dSAccount.Connection.HTTPClient = client
-
+	// set filename, check if given via argument
 	filename := FILE_NAME
 	if len(os.Args) > 1 {
 		filename = os.Args[1]
@@ -63,8 +64,9 @@ func main() {
 	fmt.Println("")
 	fmt.Printf("Reading file %s  ... ", filename)
 	logger.Info(fmt.Sprintf("reading file %s", filename))
+	//open the given file
 	readFile, err := os.Open(filename)
-
+	defer readFile.Close()
 	if err != nil {
 		logger.Error(err, fmt.Sprintf("file %s", filename))
 		fmt.Println("ERROR")
@@ -74,10 +76,10 @@ func main() {
 		return
 	}
 	fmt.Println("OK")
+	// use line scanner to read csv file line by line
 	fileScanner := bufio.NewScanner(readFile)
-
 	fileScanner.Split(bufio.ScanLines)
-
+	// scan for first line
 	fileScanner.Scan()
 	firstLine := fileScanner.Text()
 	logger.Info(fmt.Sprintf("firstline of file '%s' is '%s'", filename, firstLine))
@@ -87,8 +89,9 @@ func main() {
 		fmt.Println("Program stopped")
 		return
 	}
-
+	// first line is ok, prepare line reading
 	accounts := []*accountRow{}
+	// scan all other lines
 
 	for fileScanner.Scan() {
 		newLine := fileScanner.Text()
@@ -103,7 +106,7 @@ func main() {
 		accounts = append(accounts, newAccount)
 
 	}
-	readFile.Close()
+
 	fmt.Println("")
 	fmt.Printf("Found %d rows with account data.\n", len(accounts))
 	fmt.Println("")
@@ -231,7 +234,7 @@ func getAccountRow(line string) (*accountRow, error) {
 	return &newRow, nil
 }
 func setLogger() {
-	f, err := os.OpenFile("debug.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile(FILE_NAME_LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
