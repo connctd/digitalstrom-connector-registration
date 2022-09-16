@@ -2,7 +2,7 @@
 
 The aim of this tool is to register an application 'foresight-connectd' to multiple digitalStrom systems and extracting the application tokens which are needed for the application login. With the help of the generated token, a connector of the connctd platform is able to establish a connection without the use of user credentials. 
 
-The resulting application tokens are needed to instanciate a [digitalStrom connector]{https://github.com/connctd/connector-digitalstrom} for the [connctd platform]{http://connctd.com}.
+The resulting application tokens are needed to instanciate a [digitalStrom connector](https://github.com/connctd/connector-digitalstrom) for the [connctd platform](http://connctd.com).
 
 # Usage
 ## Prepare a file with account data
