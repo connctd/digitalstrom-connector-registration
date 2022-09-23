@@ -83,8 +83,9 @@ func main() {
 	fileScanner.Scan()
 	firstLine := fileScanner.Text()
 	logger.Info(fmt.Sprintf("firstline of file '%s' is '%s'", filename, firstLine))
-	if firstLine != COL_NAMES {
-		logger.Error(fmt.Errorf("first line does not match with expected line ('%s'))", COL_NAMES), "program aborted")
+	if !strings.HasPrefix(firstLine, COL_NAMES) {
+		//if firstLine != COL_NAMES {
+		logger.Error(fmt.Errorf("first line does not match or stats with expected line ('%s'))", COL_NAMES), "program aborted")
 		fmt.Printf("wrong column names, must be %s\n", COL_NAMES)
 		fmt.Println("Program stopped")
 		return
@@ -221,9 +222,9 @@ func registerConnector(dSAccount *digitalstrom.Account, accountRow *accountRow) 
 func getAccountRow(line string) (*accountRow, error) {
 
 	values := strings.Split(line, ";")
-	if len(values) != 3 {
-		return nil, fmt.Errorf("line does not contains of 3 columns (%s)", line)
-	}
+	//if len(values) > 3 {
+	//		return nil, fmt.Errorf("line does not contains of 3 columns (%s)", line)
+	//	}
 	newRow := accountRow{
 		link:    values[0],
 		user:    values[1],
