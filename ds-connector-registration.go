@@ -85,7 +85,7 @@ func main() {
 	logger.Info(fmt.Sprintf("firstline of file '%s' is '%s'", filename, firstLine))
 	if !strings.HasPrefix(firstLine, COL_NAMES) {
 		//if firstLine != COL_NAMES {
-		logger.Error(fmt.Errorf("first line does not match or stats with expected line ('%s'))", COL_NAMES), "program aborted")
+		logger.Error(fmt.Errorf("first line ('%s') does not match or starts with expected line ('%s'))", firstLine, COL_NAMES), "program aborted")
 		fmt.Printf("wrong column names, must be %s\n", COL_NAMES)
 		fmt.Println("Program stopped")
 		return
